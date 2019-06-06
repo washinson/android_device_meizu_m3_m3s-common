@@ -1,0 +1,5 @@
+This is patch directory
+
+cd WORKING_DIR
+sh device/meizu/m3_m3s-common/patches/install.sh
+sh device/meizu/m3_m3s-common/patches/uninstall.sh
