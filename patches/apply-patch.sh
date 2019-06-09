@@ -3,7 +3,6 @@ cd ../../../..
 cd frameworks/av
 git apply -v ../../device/meizu/m3_m3s-common/patches/framework_av/0001-libmedia-stub-out-MTK-specific-bits-audio-working.patch
 git apply -v ../../device/meizu/m3_m3s-common/patches/framework_av/0002-camera.patch
-git apply -v ../../device/meizu/m3_m3s-common/patches/framework_av/0003-frameworks_av_fmradio_patch.patch
 git apply -v ../../device/meizu/m3_m3s-common/patches/framework_av/0001_engineering_mode_audio_settings_frameworks_av.patch
 git apply -v ../../device/meizu/m3_m3s-common/patches/framework_av/frameworks_av_videorecording_fix.patch
 cd ../..
@@ -14,6 +13,7 @@ git apply -v ../../device/meizu/m3_m3s-common/patches/framework_base/0003-locati
 git apply -v ../../device/meizu/m3_m3s-common/patches/framework_base/0004_minimal_xlog_frameworks_base.patch
 git apply -v ../../device/meizu/m3_m3s-common/patches/framework_base/0005-Update-for-mtk.patch
 git apply -v ../../device/meizu/m3_m3s-common/patches/framework_base/0001_engineering_mode_audio_settings_frameworks_base.patch
+git apply -v ../../device/meizu/m3_m3s-common/patches/framework_base/0006-ged_whitelist.patch
 cd ../..
 cd packages/apps/Settings/
 git apply -v ../../../device/meizu/m3_m3s-common/patches/packages_apps_Settings/0001-multisim.patch

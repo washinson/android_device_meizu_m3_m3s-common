@@ -17,7 +17,8 @@ PRODUCT_COPY_FILES += \
      $(COMMON_PATH)/keylayout/mtk-kpd.kl:system/usr/keylayout/mtk-kpd.kl \
      $(COMMON_PATH)/keylayout/ACCDET.kl:system/usr/keylayout/ACCDET.kl \
      $(COMMON_PATH)/keylayout/AVRCP.kl:system/usr/keylayout/AVRCP.kl \
-     $(COMMON_PATH)/keylayout/AW9201_ts.kl:system/usr/keylayout/AW9201_ts.kl
+     $(COMMON_PATH)/keylayout/AW9201_ts.kl:system/usr/keylayout/AW9201_ts.kl \
+     $(COMMON_PATH)/keylayout/mtk-tpd.kl:system/usr/keylayout/mtk-tpd.kl
 
 #PRODUCT_COPY_FILES += \
 #    $(COMMON_PATH)/configs/gps.conf:system/etc/gps.conf
