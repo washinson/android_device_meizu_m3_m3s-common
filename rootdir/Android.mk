@@ -60,13 +60,29 @@ LOCAL_SRC_FILES    := etc/init.modem.rc
 LOCAL_MODULE_PATH  := $(TARGET_ROOT_OUT)
 include $(BUILD_PREBUILT)
 
+ifeq ($(TARGET_DEVICE),m3)
+
 include $(CLEAR_VARS)
 LOCAL_MODULE       := init.mt6755.rc
 LOCAL_MODULE_TAGS  := optional eng
 LOCAL_MODULE_CLASS := ETC
-LOCAL_SRC_FILES    := etc/init.mt6755.rc
+LOCAL_SRC_FILES    := etc/init.mt6755.m3.rc
 LOCAL_MODULE_PATH  := $(TARGET_ROOT_OUT)
 include $(BUILD_PREBUILT)
+
+endif
+
+ifeq ($(TARGET_DEVICE),m3s)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE       := init.mt6755.rc
+LOCAL_MODULE_TAGS  := optional eng
+LOCAL_MODULE_CLASS := ETC
+LOCAL_SRC_FILES    := etc/init.mt6755.m3s.rc
+LOCAL_MODULE_PATH  := $(TARGET_ROOT_OUT)
+include $(BUILD_PREBUILT)
+
+endif
 
 include $(CLEAR_VARS)
 LOCAL_MODULE       := init.mt6755.usb.rc
@@ -108,6 +124,8 @@ LOCAL_SRC_FILES    := etc/init.trustonic.rc
 LOCAL_MODULE_PATH  := $(TARGET_ROOT_OUT)
 include $(BUILD_PREBUILT)
 
+ifeq ($(TARGET_DEVICE),m3)
+
 include $(CLEAR_VARS)
 LOCAL_MODULE       := init.volte.rc
 LOCAL_MODULE_TAGS  := optional eng
@@ -115,6 +133,8 @@ LOCAL_MODULE_CLASS := ETC
 LOCAL_SRC_FILES    := etc/init.volte.rc
 LOCAL_MODULE_PATH  := $(TARGET_ROOT_OUT)
 include $(BUILD_PREBUILT)
+
+endif
 
 include $(CLEAR_VARS)
 LOCAL_MODULE       := meta_init.modem.rc

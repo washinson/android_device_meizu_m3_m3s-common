@@ -3,6 +3,7 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 # The gps config appropriate for this device
 $(call inherit-product, device/common/gps/gps_us_supl.mk)
 
+COMMON_PATH := device/meizu/m3_m3s-common
 DEVICE_PACKAGE_OVERLAYS += $(COMMON_PATH)/overlay
 
 PRODUCT_AAPT_CONFIG := normal
@@ -135,20 +136,9 @@ ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0 \
 	ro.mtk_gps_support=1 \
 	persist.debug.xlog.enable=1
 
-# Telecom
-#    $(COMMON_PATH)/configs/cdma_ecc_list.xml:system/etc/cdma_ecc_list.xml
-PRODUCT_COPY_FILES += \
-    $(COMMON_PATH)/configs/apns-conf.xml:system/etc/apns-conf.xml \
-    $(COMMON_PATH)/configs/ecc_list.xml:system/etc/ecc_list.xml \
-    $(COMMON_PATH)/configs/spn-conf.xml:system/etc/spn-conf.xml
-
 # Fingerprint sensor
 #PRODUCT_COPY_FILES += \
 #    frameworks/native/data/etc/cyanogenmod.hardware.fingerprint.xml:system/etc/permissions/cyanogenmod.hardware.fingerprint.xml
-
-# BT A2DP
-PRODUCT_COPY_FILES += \
-    vendor/meizu/$(TARGET_DEVICE)/proprietary/vendor/lib/hw/audio.a2dp.blueangel.so:system/vendor/lib/hw/audio.a2dp.mt6750.so
 
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.kernel.android.checkjni=0 \
