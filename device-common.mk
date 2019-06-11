@@ -125,17 +125,12 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     persist.service.acm.enable=0 \
     camera.disable_zsl_mode=1
     
-ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0 \
+ADDITIONAL_DEFAULT_PROPERTIES += \
+	ro.secure=0 \
 	ro.allow.mock.location=1 \
 	ro.debuggable=1 \
 	ro.adb.secure=0 \
-	persist.radio.multisim.config=dsds \
-	ro.mtk_lte_support=1 \
-	ro.telephony.sim.count=2 \
-	persist.gemini.sim_num=2 \
-	ril.current.share_modem=2 \
-	ro.mtk_gps_support=1 \
-	persist.debug.xlog.enable=1
+	persist.debug.xlog.enable=1 
 
 # Fingerprint sensor
 #PRODUCT_COPY_FILES += \

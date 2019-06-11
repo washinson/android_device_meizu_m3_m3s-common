@@ -20,6 +20,7 @@ git apply -v ../../../device/meizu/m3_m3s-common/patches/packages_apps_Settings/
 cd ../../..
 cd frameworks/opt/telephony
 git apply -v ../../../device/meizu/m3_m3s-common/patches/framework_opt_telephony/0001-Update-for-mtk.patch
+git apply -v ../../../device/meizu/m3_m3s-common/patches/framework_opt_telephony/0002_mobile_data_patch_mt6753.patch
 cd ../../..
 cd hardware/libhardware
 git apply -v ../../device/meizu/m3_m3s-common/patches/hardware_libhardware/fix-gps-light-audio.patch

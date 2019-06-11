@@ -542,6 +542,20 @@ service servicemanager /system/bin/servicemanager
     onrestart restart media
     onrestart restart surfaceflinger
     onrestart restart drm
+    
+#pppoe
+service pppd_pppoe /system/bin/sh /system/etc/ppp/init.pppoe-pppd
+    user root
+    group radio cache inet misc
+    oneshot
+    disabled
+
+on property:net.pppoe=start
+    start pppd_pppoe
+
+on property:net.pppoe=stop
+    stop pppd_pppoe
+#pppoe end
 
 service vold /system/bin/vold
     class core
