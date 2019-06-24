@@ -31,7 +31,6 @@ PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/rootdir/init.trace.rc:root/init.trace.rc \
     $(COMMON_PATH)/rootdir/fstab.mt6755:root/fstab.mt6755 \
     $(COMMON_PATH)/rootdir/init.nvdata.rc:root/init.nvdata.rc \
-    $(COMMON_PATH)/rootdir/init.volte.rc:root/init.volte.rc \
     $(COMMON_PATH)/rootdir/ueventd.mt6755.rc:root/ueventd.mt6755.rc \
     $(COMMON_PATH)/configs/media_codecs.xml:system/etc/media_codecs.xml \
     $(COMMON_PATH)/configs/media_profiles.xml:system/etc/media_profiles.xml \

@@ -38,9 +38,6 @@ loglevel 6 ####
     # Backward compatibility
     symlink /system/etc /etc
     symlink /sys/kernel/debug /d
-    #Start, add for BSP test app, zhouliquan.wt, 2016.02.19
-    symlink /data/work/testing/bin /bin
-    #End, add for BSP test app, zhouliquan.wt, 2016.02.19
 
     # Right now vendor lives on the same filesystem as system,
     # but someday that may change.

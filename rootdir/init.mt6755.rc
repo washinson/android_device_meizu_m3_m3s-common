@@ -859,6 +859,11 @@ on post-fs-data
     chown system system /proc/svp_region
     chmod 0660 /proc/svp_region
 
+	# FINGERPRINT
+	chown system system /dev/goodix_fp_spi
+	chmod 0660 /dev/goodix_fp_spi
+
+
 # End of adding by MTK drivers
 # -----------------------
 
@@ -1864,3 +1869,9 @@ on property:ro.build.type=eng
     write /proc/hps/up_threshold 60
     write /proc/hps/down_threshold 30
 
+# fingerprint service
+service fpDaemon /system/bin/gxFpDaemon
+    user system
+    group system
+    class main
+    oneshot

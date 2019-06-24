@@ -144,9 +144,6 @@ on init
     # Therefore, if the target doesn't support sd hot-plugging (Ex: the SD card slot in a battery compartment), we need to export SECONDARY_STORAGE in 'boot' section
     #
     # export SECONDARY_STORAGE /storage/sdcard1
-#add by zhouyacheng-wind at 20160314 strat
-symlink /data/work/testing/bin /bin
-#add by zhouyacheng-wind at 20160314 end
 
 service fuse_usbotg /system/bin/sdcard -u 1023 -g 1023 -w 1023 -d /mnt/media_rw/usbotg /storage/usbotg
     class late_start
@@ -221,6 +218,7 @@ service spm_script /system/bin/spm_loader
     group root
     class core
     oneshot
+
 
 #FLYME:fanjun@SHELL.HapticFeedback.Feature {@
 on init
