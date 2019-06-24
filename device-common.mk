@@ -90,11 +90,6 @@ PRODUCT_PACKAGES += \
     audio.usb.default \
     audio.r_submix.default
 
-# Audio componets from source
-#PRODUCT_PACKAGES += \
-#    EngineerMode \
-#    MtkCamera libDocVfbEngineLib_m81 libpanorama
-
 #$(call inherit-product, build/target/product/full.mk)
 $(call inherit-product, build/target/product/aosp_arm64.mk)
 
@@ -103,6 +98,7 @@ ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0 \
     ro.debuggable=1 \
     ro.adb.secure=0 \
     persist.service.acm.enable=0 \
+    persist.sys.usb.config=mtp \
     ro.mount.fs=EXT4 \
     debug.hwui.render_dirty_regions=false \
     ro.sf.lcd_density=320 \
