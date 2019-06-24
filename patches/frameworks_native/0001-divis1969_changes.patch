@@ -1,0 +1,148 @@
+diff --git a/include/android/keycodes.h b/include/android/keycodes.h
+index 75d0ab6..710ba63 100644
+--- a/include/android/keycodes.h
++++ b/include/android/keycodes.h
+@@ -302,7 +302,19 @@ enum {
+     AKEYCODE_TV_CONTENTS_MENU = 256,
+     AKEYCODE_TV_MEDIA_CONTEXT_MENU = 257,
+     AKEYCODE_TV_TIMER_PROGRAMMING = 258,
+-    AKEYCODE_HELP            = 259
++    AKEYCODE_HELP            = 259,
++
++    /* MTK/Meizu key codes */
++    AKEYCODE_WIFI_TOGGLE = 260,
++    AKEYCODE_BT_TOGGLE = 261,
++    AKEYCODE_LOCK_TOGGLE = 262,
++    AKEYCODE_IME_TOGGLE = 263,
++    AKEYCODE_MESSAGING = 264,
++    AKEYCODE_GALLERY = 265,
++    AKEYCODE_GESTURE = 266,
++    AKEYCODE_SLIDE = 267,
++    AKEYCODE_UNLOCK = 268,
++    AKEYCODE_FINGERPRINT = 269,
+ 
+     // NOTE: If you add a new keycode here you must also add it to several other files.
+     //       Refer to frameworks/base/core/java/android/view/KeyEvent.java for the full list.
+diff --git a/include/input/InputEventLabels.h b/include/input/InputEventLabels.h
+index a9d88f1..2c7ec87 100644
+--- a/include/input/InputEventLabels.h
++++ b/include/input/InputEventLabels.h
+@@ -299,7 +299,17 @@ static const InputEventLabel KEYCODES[] = {
+     DEFINE_KEYCODE(TV_MEDIA_CONTEXT_MENU),
+     DEFINE_KEYCODE(TV_TIMER_PROGRAMMING),
+     DEFINE_KEYCODE(HELP),
+-
++    /* MTK/Meizu key codes */
++    DEFINE_KEYCODE(WIFI_TOGGLE),
++    DEFINE_KEYCODE(BT_TOGGLE),
++    DEFINE_KEYCODE(LOCK_TOGGLE),
++    DEFINE_KEYCODE(IME_TOGGLE),
++    DEFINE_KEYCODE(MESSAGING),
++    DEFINE_KEYCODE(GALLERY),
++    DEFINE_KEYCODE(GESTURE),
++    DEFINE_KEYCODE(SLIDE),
++    DEFINE_KEYCODE(UNLOCK),
++    DEFINE_KEYCODE(FINGERPRINT),
+     { NULL, 0 }
+ };
+ 
+diff --git a/services/inputflinger/Android.mk b/services/inputflinger/Android.mk
+index 85edbe5..62156df 100644
+--- a/services/inputflinger/Android.mk
++++ b/services/inputflinger/Android.mk
+@@ -32,7 +32,8 @@ LOCAL_SHARED_LIBRARIES := \
+     liblog \
+     libutils \
+ 	libui \
+-	libhardware_legacy
++	libhardware_legacy \
++    libdl
+ 
+ 
+ # TODO: Move inputflinger to its own process and mark it hidden
+diff --git a/services/inputflinger/InputDispatcher.cpp b/services/inputflinger/InputDispatcher.cpp
+index 9157bc1..b20f5e7 100644
+--- a/services/inputflinger/InputDispatcher.cpp
++++ b/services/inputflinger/InputDispatcher.cpp
+@@ -55,6 +55,7 @@
+ #include <errno.h>
+ #include <limits.h>
+ #include <time.h>
++#include <dlfcn.h>
+ 
+ #define INDENT "  "
+ #define INDENT2 "    "
+@@ -88,6 +89,16 @@ const nsecs_t SLOW_EVENT_PROCESSING_WARNING_TIMEOUT = 2000 * 1000000LL; // 2sec
+ // Number of recent events to keep for debugging purposes.
+ const size_t RECENT_QUEUE_MAX_SIZE = 10;
+ 
++// MTK
++#define SCN_APP_TOUCH     5
++typedef int (*PerfServiceBoostEnableAsyncPtr)(int);
++static PerfServiceBoostEnableAsyncPtr gPerfServiceBoostEnableAsyncPtr = NULL;
++typedef int (*PerfServiceBoostEnableTimeoutAsyncPtr)(int);
++static PerfServiceBoostEnableTimeoutAsyncPtr gPerfServiceBoostEnableTimeoutAsyncPtr = NULL;
++typedef int (*PerfServiceBoostDisableAsyncPtr)(int);
++static PerfServiceBoostDisableAsyncPtr gPerfServiceBoostDisableAsyncPtr = NULL;
++// end MTK
++
+ static inline nsecs_t now() {
+     return systemTime(SYSTEM_TIME_MONOTONIC);
+ }
+@@ -206,6 +217,38 @@ InputDispatcher::InputDispatcher(const sp<InputDispatcherPolicyInterface>& polic
+ 
+     mKeyRepeatState.lastKeyEntry = NULL;
+ 
++    if (gPerfServiceBoostEnableAsyncPtr == NULL) {
++        ALOGE("Opening libperfservicenative.so");
++        void * perfServiceLib = dlopen("libperfservicenative.so", RTLD_NOW);
++        if (perfServiceLib == NULL) {
++            ALOGE("Cannot open libperfservicenative.so");
++        } else {
++            gPerfServiceBoostEnableAsyncPtr = (PerfServiceBoostEnableAsyncPtr)
++                dlsym(perfServiceLib, "PerfServiceNative_boostEnableAsync");
++            if (gPerfServiceBoostEnableAsyncPtr == NULL) {
++                ALOGE("Cannot get PerfServiceNative_boostEnableAsync ptr");
++            }
++            gPerfServiceBoostEnableTimeoutAsyncPtr = (PerfServiceBoostEnableTimeoutAsyncPtr)
++                dlsym(perfServiceLib, "PerfServiceNative_boostEnableTimeoutAsync");
++            if (gPerfServiceBoostEnableTimeoutAsyncPtr == NULL) {
++                ALOGE("Cannot get PerfServiceNative_boostEnableTimeoutAsync ptr");
++            }
++            gPerfServiceBoostDisableAsyncPtr = (PerfServiceBoostDisableAsyncPtr)
++                dlsym(perfServiceLib, "PerfServiceNative_boostDisableAsync");
++            if (gPerfServiceBoostDisableAsyncPtr == NULL) {
++                ALOGE("Cannot get PerfServiceNative_boostDisableAsync ptr");
++            }
++            if (gPerfServiceBoostEnableAsyncPtr == NULL && gPerfServiceBoostEnableTimeoutAsyncPtr == NULL &&
++                    gPerfServiceBoostDisableAsyncPtr == NULL) {
++                ALOGE("Cannot get PerfServiceNative ptrs, closing library");
++                dlclose(perfServiceLib);
++                gPerfServiceBoostEnableAsyncPtr = NULL;
++                gPerfServiceBoostEnableTimeoutAsyncPtr = NULL;
++                gPerfServiceBoostDisableAsyncPtr = NULL;
++            }
++        }
++    }
++
+     policy->getDispatcherConfiguration(&mConfig);
+ }
+ 
+@@ -866,6 +909,17 @@ bool InputDispatcher::dispatchMotionLocked(
+                 "conflicting pointer actions");
+         synthesizeCancelationEventsForAllConnectionsLocked(options);
+     }
++    // MTK
++    if (entry->action == AMOTION_EVENT_ACTION_UP || entry->action == AMOTION_EVENT_ACTION_CANCEL) {
++        if (gPerfServiceBoostDisableAsyncPtr != NULL) {
++            (void)gPerfServiceBoostDisableAsyncPtr(SCN_APP_TOUCH);
++        }
++    } else if (entry->action == AMOTION_EVENT_ACTION_DOWN) {
++        if (gPerfServiceBoostEnableAsyncPtr != NULL) {
++            (void)gPerfServiceBoostEnableAsyncPtr(SCN_APP_TOUCH);
++        }
++    }
++    // end MTK
+     dispatchEventLocked(currentTime, entry, inputTargets);
+     return true;
+ }

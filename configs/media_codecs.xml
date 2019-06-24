@@ -64,8 +64,6 @@ Only the three quirks included above are recognized at this point:
 -->
 
 <MediaCodecs>
-    <Include href="media_codecs_google_audio.xml" />
-    <Include href="media_codecs_google_telephony.xml" />
     <Decoders>
         <!--
         <MediaCodec name="OMX.MTK.AUDIO.DECODER.MP3" type="audio/mpeg" >
@@ -264,6 +262,8 @@ Only the three quirks included above are recognized at this point:
             <Feature name="bitrate-modes" value="VBR,CBR" />
         </MediaCodec>
     </Encoders>
+    <Include href="media_codecs_google_audio.xml" />
+    <Include href="media_codecs_google_telephony.xml" />
     <Include href="media_codecs_google_video.xml" />
     <Include href="media_codecs_ffmpeg.xml" />
 </MediaCodecs>

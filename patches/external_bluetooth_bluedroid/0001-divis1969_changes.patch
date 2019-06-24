@@ -1,0 +1,55 @@
+diff --git a/btif/src/bluetooth.c b/btif/src/bluetooth.c
+index c532b7b..20ec9b8 100644
+--- a/btif/src/bluetooth.c
++++ b/btif/src/bluetooth.c
+@@ -749,11 +749,11 @@ static bt_status_t bt_le_lpp_read_rssi_threshold(const bt_bdaddr_t *remote_bda)
+ static const bt_interface_t bluetoothInterface = {
+     sizeof(bluetoothInterface),
+     init,
+-    initq,
++//    initq,
+     enable,
+     disable,
+     cleanup,
+-    ssrcleanup,
++//    ssrcleanup,
+     get_adapter_properties,
+     get_adapter_property,
+     set_adapter_property,
+diff --git a/btif/src/btif_hf.c b/btif/src/btif_hf.c
+index a66de6d..dbec8ae 100644
+--- a/btif/src/btif_hf.c
++++ b/btif/src/btif_hf.c
+@@ -1648,7 +1648,7 @@ static bt_status_t  configure_wbs( bt_bdaddr_t *bd_addr , bthf_wbs_config_t conf
+ static const bthf_interface_t bthfInterface = {
+     sizeof(bthfInterface),
+     init,
+-    init_features,
++//    init_features,
+     connect,
+     disconnect,
+     connect_audio,
+@@ -1663,7 +1663,7 @@ static const bthf_interface_t bthfInterface = {
+     at_response,
+     clcc_response,
+     phone_state_change,
+-    get_remote_features,
++//    get_remote_features,
+     cleanup,
+     configure_wbs,
+ };
+diff --git a/btif/src/btif_sock.c b/btif/src/btif_sock.c
+index 4e1d91a..abcc605 100644
+--- a/btif/src/btif_sock.c
++++ b/btif/src/btif_sock.c
+@@ -66,8 +66,8 @@ static btsock_interface_t sock_if = {
+                 sizeof(sock_if),
+                 btsock_listen,
+                 btsock_connect,
+-                btsock_get_sockopt,
+-                btsock_set_sockopt
++//                btsock_get_sockopt,
++//                btsock_set_sockopt
+        };
+ btsock_interface_t *btif_sock_get_interface()
+ {

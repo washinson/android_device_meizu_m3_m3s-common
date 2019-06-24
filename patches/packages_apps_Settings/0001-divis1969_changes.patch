@@ -1,0 +1,228 @@
+diff --git a/src/com/android/settings/DisplaySettings.java b/src/com/android/settings/DisplaySettings.java
+index c7c8981..6f59c27 100644
+--- a/src/com/android/settings/DisplaySettings.java
++++ b/src/com/android/settings/DisplaySettings.java
+@@ -20,6 +20,7 @@ package com.android.settings;
+ import android.os.UserHandle;
+ 
+ import android.view.Display;
++import android.view.IGestureManager;
+ import android.view.IWindowManager;
+ import android.view.WindowManager;
+ import android.view.WindowManagerGlobal;
+@@ -36,6 +37,7 @@ import static android.provider.Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC;
+ import static android.provider.Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL;
+ import static android.provider.Settings.System.SCREEN_OFF_TIMEOUT;
+ import static cyanogenmod.hardware.CMHardwareManager.FEATURE_TAP_TO_WAKE;
++import android.provider.MzSettings;
+ 
+ import android.app.Activity;
+ import android.app.ActivityManagerNative;
+@@ -50,6 +52,7 @@ import android.content.res.Resources;
+ import android.content.SharedPreferences;
+ import android.hardware.Sensor;
+ import android.hardware.SensorManager;
++import android.net.Uri;
+ import android.os.AsyncTask;
+ import android.os.Build;
+ import android.database.ContentObserver;
+@@ -66,6 +69,7 @@ import android.preference.PreferenceCategory;
+ import android.preference.PreferenceScreen;
+ import android.preference.SwitchPreference;
+ import android.preference.TwoStatePreference;
++import android.provider.MzSettings;
+ import android.provider.SearchIndexableResource;
+ import android.provider.Settings;
+ import android.text.TextUtils;
+@@ -131,6 +135,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+     private PreferenceScreen mWifiDisplayPreference;
+ 
+     private CMHardwareManager mHardware;
++    IGestureManager mGestureManager;
+ 
+     private ContentObserver mAccelerometerRotationObserver =
+             new ContentObserver(new Handler()) {
+@@ -149,12 +154,97 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+         }
+     };
+ 
++    private ContentObserver mGestureSettingsObserver =
++            new ContentObserver(new Handler()) {
++        @Override
++        public void onChange(boolean selfChange, Uri uri) {
++            super.onChange(selfChange, uri);
++            int gestureGlobalSwitch = 0;
++            int easyModeEnable = 0;
++            int doubleTap = 0;
++            ContentResolver cr = getActivity().getContentResolver();
++            if (Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_SLIDE_UP).equals(uri)) {
++                if (Settings.System.getInt(cr, MzSettings.System.MZ_QUICK_WAKEUP_SLIDE_UP, 0) == 1) {
++                } else {
++                }
++            }
++            else if (Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_SLIDE_LEFT_RIGHT).equals(uri)) {
++                if (Settings.System.getInt(cr, MzSettings.System.MZ_QUICK_WAKEUP_SLIDE_LEFT_RIGHT, 0) == 1) {
++                } else {
++                }
++            }
++            else if (Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DOUBLE_CLICK).equals(uri)) {
++                doubleTap = Settings.System.getInt(cr, MzSettings.System.MZ_QUICK_WAKEUP_DOUBLE_CLICK, 0);
++            }
++            else if (Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_SLIDE_DOWN).equals(uri)) {
++                if (Settings.System.getInt(cr, MzSettings.System.MZ_QUICK_WAKEUP_SLIDE_DOWN, 0) == 1) {
++                } else {
++                }
++            }
++            else if (Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_C).equals(uri)) {
++                if (Settings.System.getInt(cr, MzSettings.System.MZ_QUICK_WAKEUP_DRAW_C, 0) == 1) {
++                } else {
++                }
++            }
++            else if (Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_E).equals(uri)) {
++                if (Settings.System.getInt(cr, MzSettings.System.MZ_QUICK_WAKEUP_DRAW_E, 0) == 1) {
++                } else {
++                }
++            }
++            else if (Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_M).equals(uri)) {
++                if (Settings.System.getInt(cr, MzSettings.System.MZ_QUICK_WAKEUP_DRAW_M, 0) == 1) {
++                } else {
++                }
++            }
++            else if (Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_O).equals(uri)) {
++                if (Settings.System.getInt(cr, MzSettings.System.MZ_QUICK_WAKEUP_DRAW_O, 0) == 1) {
++                } else {
++                }
++            }
++            else if (Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_S).equals(uri)) {
++                if (Settings.System.getInt(cr, MzSettings.System.MZ_QUICK_WAKEUP_DRAW_S, 0) == 1) {
++                } else {
++                }
++            }
++            else if (Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_V).equals(uri)) {
++                if (Settings.System.getInt(cr, MzSettings.System.MZ_QUICK_WAKEUP_DRAW_V, 0) == 1) {
++                } else {
++                }
++            }
++            else if (Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_W).equals(uri)) {
++                if (Settings.System.getInt(cr, MzSettings.System.MZ_QUICK_WAKEUP_DRAW_W, 0) == 1) {
++                } else {
++                }
++            }
++            else if (Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_Z).equals(uri)) {
++                if (Settings.System.getInt(cr, MzSettings.System.MZ_QUICK_WAKEUP_DRAW_Z, 0) == 1) {
++                } else {
++                }
++            }
++            gestureGlobalSwitch = Settings.System.getInt(cr, MzSettings.System.MZ_QUICK_WAKEUP_SWITCH, 0);
++            Log.d(TAG, "onChange , gestureGlobalSwitch = " + gestureGlobalSwitch);
++            easyModeEnable = Settings.System.getInt(cr, MzSettings.System.MZ_EASY_MODE, 0);
++            Log.d(TAG, "onChange , easyModeEnable = " + easyModeEnable);
++            if (gestureGlobalSwitch == 0 || easyModeEnable == 1) {
++                if (mTapToWake != null) {
++                    mTapToWake.setChecked(false);
++                }
++            }
++            else {
++                if (mTapToWake != null) {
++                    mTapToWake.setChecked(doubleTap != 0);
++                }
++            }
++        }
++    };
++
+     @Override
+     public void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+         final Activity activity = getActivity();
+         final ContentResolver resolver = activity.getContentResolver();
+         mHardware = CMHardwareManager.getInstance(activity);
++        mGestureManager= IGestureManager.Stub.asInterface(ServiceManager.getService("gesture_manager"));
+ 
+         addPreferencesFromResource(R.xml.display);
+ 
+@@ -267,7 +357,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+ 
+         mTapToWake = (SwitchPreference) findPreference(KEY_TAP_TO_WAKE);
+         if (displayPrefs != null && mTapToWake != null
+-                && !mHardware.isSupported(FEATURE_TAP_TO_WAKE)) {
++                && !mHardware.isSupported(FEATURE_TAP_TO_WAKE) && (mGestureManager == null)) {
+             displayPrefs.removePreference(mTapToWake);
+             mTapToWake = null;
+         }
+@@ -459,7 +549,13 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+         updateDisplayRotationPreferenceDescription();
+ 
+         if (mTapToWake != null) {
+-            mTapToWake.setChecked(mHardware.get(FEATURE_TAP_TO_WAKE));
++            if (mGestureManager != null) {
++                int globalEnabled = Settings.System.getInt(getContentResolver(), MzSettings.System.MZ_QUICK_WAKEUP_SWITCH, 0);
++                int doubleTapEnabled = Settings.System.getInt(getContentResolver(), MzSettings.System.MZ_QUICK_WAKEUP_DOUBLE_CLICK, 0);
++                mTapToWake.setChecked((globalEnabled != 0) && (doubleTapEnabled != 0));
++            } else {
++                mTapToWake.setChecked(mHardware.get(FEATURE_TAP_TO_WAKE));
++            }
+         }
+ 
+         RotationPolicy.registerRotationPolicyListener(getActivity(),
+@@ -472,6 +568,21 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+                 Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION), true,
+                 mAccelerometerRotationObserver);
+ 
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_SLIDE_LEFT_RIGHT), false, mGestureSettingsObserver);
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_SLIDE_UP), false, mGestureSettingsObserver);
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_SLIDE_DOWN), false, mGestureSettingsObserver);
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_C), false, mGestureSettingsObserver);
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_E), false, mGestureSettingsObserver);
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_M), false, mGestureSettingsObserver);
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_O), false, mGestureSettingsObserver);
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_S), false, mGestureSettingsObserver);
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_V), false, mGestureSettingsObserver);
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_W), false, mGestureSettingsObserver);
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DRAW_Z), false, mGestureSettingsObserver);
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_DOUBLE_CLICK), false, mGestureSettingsObserver);
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_QUICK_WAKEUP_SWITCH), false, mGestureSettingsObserver);
++        resolver.registerContentObserver(Settings.System.getUriFor(MzSettings.System.MZ_EASY_MODE), false, mGestureSettingsObserver);
++
+         // Default value for wake-on-plug behavior from config.xml
+         boolean wakeUpWhenPluggedOrUnpluggedConfig = getResources().getBoolean(
+                 com.android.internal.R.bool.config_unplugTurnsOnScreen);
+@@ -495,6 +606,8 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+ 
+         // Display rotation observer
+         getContentResolver().unregisterContentObserver(mAccelerometerRotationObserver);
++
++        getContentResolver().unregisterContentObserver(mGestureSettingsObserver);
+     }
+ 
+     @Override
+@@ -637,7 +750,14 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+     @Override
+     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+         if (preference == mTapToWake) {
+-            return mHardware.set(FEATURE_TAP_TO_WAKE, mTapToWake.isChecked());
++            boolean result = mHardware.set(FEATURE_TAP_TO_WAKE, mTapToWake.isChecked());
++            if (mGestureManager != null) {
++                int value = mTapToWake.isChecked() ? 1 : 0;
++                Settings.System.putInt(getContentResolver(), MzSettings.System.MZ_QUICK_WAKEUP_DOUBLE_CLICK, value);
++                Settings.System.putInt(getContentResolver(), MzSettings.System.MZ_QUICK_WAKEUP_SWITCH, value);
++                result = true;
++            }
++            return result;
+         } else if (preference == mWakeWhenPluggedOrUnplugged) {
+             Settings.Global.putInt(getContentResolver(),
+                     Settings.Global.WAKE_WHEN_PLUGGED_OR_UNPLUGGED,
+diff --git a/src/com/android/settings/deviceinfo/UsbSettings.java b/src/com/android/settings/deviceinfo/UsbSettings.java
+index 3528383..4151894 100644
+--- a/src/com/android/settings/deviceinfo/UsbSettings.java
++++ b/src/com/android/settings/deviceinfo/UsbSettings.java
+@@ -80,8 +80,9 @@ public class UsbSettings extends SettingsPreferenceFragment {
+             if (action.equals(UsbManager.ACTION_USB_STATE)) {
+                mUsbAccessoryMode = intent.getBooleanExtra(UsbManager.USB_FUNCTION_ACCESSORY, false);
+                 Log.e(TAG, "UsbAccessoryMode " + mUsbAccessoryMode);
++                String function = mUsbManager.getDefaultFunction();
+                 boolean connected = intent.getExtras().getBoolean(UsbManager.USB_CONNECTED);
+-                if (!connected) {
++                if (!connected && !UsbManager.USB_FUNCTION_CHARGING.equals(function)) {
+                     Toast.makeText(getActivity(), R.string.usb_not_connected,
+                                    Toast.LENGTH_SHORT).show();
+                     finish();

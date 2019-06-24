@@ -1,0 +1,31 @@
+diff --git a/src/com/android/phone/PhoneInterfaceManager.java b/src/com/android/phone/PhoneInterfaceManager.java
+index 237ccfc..0154a04 100755
+--- a/src/com/android/phone/PhoneInterfaceManager.java
++++ b/src/com/android/phone/PhoneInterfaceManager.java
+@@ -42,6 +42,7 @@ import android.telephony.CellInfo;
+ import android.telephony.IccOpenLogicalChannelResponse;
+ import android.telephony.ServiceState;
+ import android.telephony.SubscriptionInfo;
++import android.telephony.SubscriptionManager;
+ import android.telephony.TelephonyManager;
+ import android.text.TextUtils;
+ import android.util.Log;
+@@ -58,6 +59,7 @@ import com.android.internal.telephony.PhoneConstants;
+ import com.android.internal.telephony.ProxyController;
+ import com.android.internal.telephony.PhoneConstants;
+ import com.android.internal.telephony.SubscriptionController;
++import com.android.internal.telephony.TelephonyProperties;
+ import com.android.internal.telephony.uicc.IccIoResult;
+ import com.android.internal.telephony.uicc.IccRecords;
+ import com.android.internal.telephony.uicc.IccUtils;
+@@ -2428,4 +2430,10 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
+     public int getLteOnGsmMode() {
+         return mPhone.getLteOnGsmMode();
+     }
++
++    // Meizu
++    @Override
++    public int getRadioAccessFamily(int phoneId) {
++        return ProxyController.getInstance().getRadioAccessFamily(phoneId);
++    }
+ }

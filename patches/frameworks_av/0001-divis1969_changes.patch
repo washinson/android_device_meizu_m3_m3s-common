@@ -1,0 +1,445 @@
+diff --git a/include/camera/IMZCameraService.h b/include/camera/IMZCameraService.h
+new file mode 100644
+index 0000000..819e36f
+--- /dev/null
++++ b/include/camera/IMZCameraService.h
+@@ -0,0 +1,51 @@
++/*
++ * Copyright (C) 2016
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef ANDROID_HARDWARE_IMZCAMERASERVICE_H
++#define ANDROID_HARDWARE_IMZCAMERASERVICE_H
++
++#include <utils/RefBase.h>
++#include <binder/IInterface.h>
++#include <binder/Parcel.h>
++
++namespace android {
++
++class IMZCameraService : public IInterface
++{
++public:
++    enum {
++        FIRST_IPC_CALL = IBinder::FIRST_CALL_TRANSACTION,
++    };
++
++public:
++    DECLARE_META_INTERFACE(MZCameraService);
++
++};
++
++// ----------------------------------------------------------------------------
++
++class BnMZCameraService: public BnInterface<IMZCameraService>
++{
++public:
++    virtual status_t    onTransact( uint32_t code,
++                                    const Parcel& data,
++                                    Parcel* reply,
++                                    uint32_t flags = 0);
++};
++
++}; // namespace android
++
++#endif
+diff --git a/include/media/AudioSystem.h b/include/media/AudioSystem.h
+index 698bf2e..606b015 100644
+--- a/include/media/AudioSystem.h
++++ b/include/media/AudioSystem.h
+@@ -332,6 +332,9 @@ public:
+ 
+     static status_t registerPolicyMixes(Vector<AudioMix> mixes, bool registration);
+ 
++    static status_t getAudioData(int par, unsigned long size, char * buffer);
++    static status_t setAudioData(int par, unsigned long size, char * buffer);
++
+     // ----------------------------------------------------------------------------
+ 
+     class AudioPortCallback : public RefBase
+diff --git a/include/media/IAudioFlinger.h b/include/media/IAudioFlinger.h
+index 54be5f3..dc88930 100644
+--- a/include/media/IAudioFlinger.h
++++ b/include/media/IAudioFlinger.h
+@@ -258,6 +258,9 @@ public:
+ 
+     /* Get the HW synchronization source used for an audio session */
+     virtual audio_hw_sync_t getAudioHwSyncForSession(audio_session_t sessionId) = 0;
++
++    virtual status_t getAudioData(int par, unsigned long size, char * buffer) = 0;
++    virtual status_t setAudioData(int par, unsigned long size, char * buffer) = 0;
+ };
+ 
+ 
+diff --git a/include/media/MediaProfiles.h b/include/media/MediaProfiles.h
+index 0509a7c..53ce589 100755
+--- a/include/media/MediaProfiles.h
++++ b/include/media/MediaProfiles.h
+@@ -44,7 +44,12 @@ enum camcorder_quality {
+     CAMCORDER_QUALITY_HEVC4kUHD = 17,
+     CAMCORDER_QUALITY_HEVC4kDCI = 18,
+     CAMCORDER_QUALITY_HVGA = 19,
+-    CAMCORDER_QUALITY_LIST_END = 19,
++    CAMCORDER_QUALITY_MEIZU_DUMMY_1 = 20,
++    CAMCORDER_QUALITY_MEIZU_DUMMY_2 = 21,
++    CAMCORDER_QUALITY_MEIZU_DUMMY_3 = 22,
++    CAMCORDER_QUALITY_MEIZU_DUMMY_4 = 23,
++    CAMCORDER_QUALITY_MEIZU_VGA = 24,
++    CAMCORDER_QUALITY_LIST_END = 24,
+ 
+     CAMCORDER_QUALITY_TIME_LAPSE_LIST_START = 1000,
+     CAMCORDER_QUALITY_TIME_LAPSE_LOW  = 1000,
+@@ -71,6 +76,8 @@ enum camcorder_quality {
+     CAMCORDER_QUALITY_HIGH_SPEED_1080P = 2004,
+     CAMCORDER_QUALITY_HIGH_SPEED_2160P = 2005,
+     CAMCORDER_QUALITY_HIGH_SPEED_LIST_END = 2005,
++
++	CAMCORDER_QUALITY_SLOW_MOTION_VGA = 2231,
+ };
+ /**
+  * Set CIF as default maximum import and export resolution of video editor.
+diff --git a/media/libmedia/AudioSystem.cpp b/media/libmedia/AudioSystem.cpp
+index 9cae21c..d7b28b1 100644
+--- a/media/libmedia/AudioSystem.cpp
++++ b/media/libmedia/AudioSystem.cpp
+@@ -999,4 +999,18 @@ void AudioSystem::AudioPolicyServiceClient::onAudioPatchListUpdate()
+     }
+ }
+ 
++status_t AudioSystem::getAudioData(int par, unsigned long size, char * buffer)
++{
++    const sp<IAudioFlinger>& af = AudioSystem::get_audio_flinger();
++    if (af == 0) return 0;
++    return af->getAudioData(par, size, buffer);
++}
++
++status_t AudioSystem::setAudioData(int par, unsigned long size, char * buffer)
++{
++    const sp<IAudioFlinger>& af = AudioSystem::get_audio_flinger();
++    if (af == 0) return 0;
++    return af->setAudioData(par, size, buffer);
++}
++
+ }; // namespace android
+diff --git a/media/libmedia/IAudioFlinger.cpp b/media/libmedia/IAudioFlinger.cpp
+index 3f76506..366f42c 100644
+--- a/media/libmedia/IAudioFlinger.cpp
++++ b/media/libmedia/IAudioFlinger.cpp
+@@ -85,6 +85,8 @@ enum {
+ #ifdef QCOM_DIRECTTRACK
+     CREATE_DIRECT_TRACK,
+ #endif
++    GET_AUDIO_DATA,
++    SET_AUDIO_DATA,
+ };
+ 
+ #define MAX_ITEMS_PER_LIST 1024
+@@ -944,6 +946,44 @@ public:
+         }
+         return (audio_hw_sync_t)reply.readInt32();
+     }
++
++    virtual status_t getAudioData(int par, unsigned long size, char * buffer)
++    {
++        ALOGV("getAudioData: %d, %d, %p", par, size, buffer);
++        if (buffer == NULL || size == 0) {
++            return BAD_VALUE;
++        }
++        Parcel data, reply;
++        data.writeInterfaceToken(IAudioFlinger::getInterfaceDescriptor());
++        data.writeInt32(par);
++        data.writeInt32(size);
++        data.write(buffer, size);
++        status_t status = remote()->transact(GET_AUDIO_DATA, data, &reply);
++        if (status != NO_ERROR ||
++                (status = (status_t)reply.readInt32()) != NO_ERROR) {
++            return status;
++        }
++        reply.read(buffer, size);
++        return status;
++    }
++
++    virtual status_t setAudioData(int par, unsigned long size, char * buffer)
++    {
++        ALOGV("setAudioData: %d, %d, %p", par, size, buffer);
++        if (buffer == NULL || size == 0) {
++            return BAD_VALUE;
++        }
++        Parcel data, reply;
++        data.writeInterfaceToken(IAudioFlinger::getInterfaceDescriptor());
++        data.writeInt32(par);
++        data.writeInt32(size);
++        data.write(buffer, size);
++        status_t status = remote()->transact(SET_AUDIO_DATA, data, &reply);
++        if (status == NO_ERROR) {
++            status = (status_t)reply.readInt32();
++        }
++        return status;
++    }
+ };
+ 
+ IMPLEMENT_META_INTERFACE(AudioFlinger, "android.media.IAudioFlinger");
+@@ -1465,6 +1505,42 @@ status_t BnAudioFlinger::onTransact(
+             reply->writeInt32(getAudioHwSyncForSession((audio_session_t)data.readInt32()));
+             return NO_ERROR;
+         } break;
++        case GET_AUDIO_DATA: {
++            CHECK_INTERFACE(IAudioFlinger, data, reply);
++            int par = data.readInt32();
++            unsigned long size = data.readInt32();
++            ALOGV("GET_AUDIO_DATA: %d, %d", par, size);
++            char * buffer = (char*)calloc(size, 1);
++            if (buffer == NULL) {
++                reply->writeInt32(NO_MEMORY);
++                reply->writeInt32(0);
++                return NO_ERROR;
++            }
++            status_t status = getAudioData(par, size, buffer);
++            reply->writeInt32(status);
++            if (status == NO_ERROR) {
++                reply->write(buffer, size);
++            }
++            free(buffer);
++            return NO_ERROR;
++        } break;
++        case SET_AUDIO_DATA: {
++            CHECK_INTERFACE(IAudioFlinger, data, reply);
++            int par = data.readInt32();
++            unsigned long size = data.readInt32();
++            ALOGV("SET_AUDIO_DATA: %d, %d", par, size);
++            char * buffer = (char*)calloc(size, 1);
++            if (buffer == NULL) {
++                reply->writeInt32(NO_MEMORY);
++                reply->writeInt32(0);
++                return NO_ERROR;
++            }
++            data.read(buffer, size);
++            status_t status = setAudioData(par, size, buffer);
++            reply->writeInt32(status);
++            free(buffer);
++            return NO_ERROR;
++        } break;
+         default:
+             return BBinder::onTransact(code, data, reply, flags);
+     }
+diff --git a/media/libmedia/MediaProfiles.cpp b/media/libmedia/MediaProfiles.cpp
+index 5648a7d..1bb1e18 100755
+--- a/media/libmedia/MediaProfiles.cpp
++++ b/media/libmedia/MediaProfiles.cpp
+@@ -80,6 +80,7 @@ const MediaProfiles::NameToTagMap MediaProfiles::sCamcorderQualityNameMap[] = {
+     {"fwvga", CAMCORDER_QUALITY_FWVGA},
+     {"4kdci",CAMCORDER_QUALITY_4kDCI},
+     {"hvga",CAMCORDER_QUALITY_HVGA},
++    {"meizu_vga",CAMCORDER_QUALITY_MEIZU_VGA},
+ 
+     {"timelapselow",  CAMCORDER_QUALITY_TIME_LAPSE_LOW},
+     {"timelapsehigh", CAMCORDER_QUALITY_TIME_LAPSE_HIGH},
+@@ -107,6 +108,8 @@ const MediaProfiles::NameToTagMap MediaProfiles::sCamcorderQualityNameMap[] = {
+     {"hevc1080p", CAMCORDER_QUALITY_HEVC1080P},
+     {"hevc4kuhd",CAMCORDER_QUALITY_HEVC4kUHD},
+     {"hevc4kdci",CAMCORDER_QUALITY_HEVC4kDCI},
++
++    {"slowmotion720p", CAMCORDER_QUALITY_SLOW_MOTION_VGA},
+ };
+ 
+ #if LOG_NDEBUG
+@@ -516,8 +519,9 @@ static bool isTimelapseProfile(camcorder_quality quality) {
+ }
+ 
+ static bool isHighSpeedProfile(camcorder_quality quality) {
+-    return quality >= CAMCORDER_QUALITY_HIGH_SPEED_LIST_START &&
+-           quality <= CAMCORDER_QUALITY_HIGH_SPEED_LIST_END;
++    return (quality >= CAMCORDER_QUALITY_HIGH_SPEED_LIST_START &&
++           quality <= CAMCORDER_QUALITY_HIGH_SPEED_LIST_END) ||
++           quality == CAMCORDER_QUALITY_SLOW_MOTION_VGA;
+ }
+ 
+ void MediaProfiles::initRequiredProfileRefs(const Vector<int>& cameraIds) {
+diff --git a/media/mediaserver/Android.mk b/media/mediaserver/Android.mk
+index fc807c0..d108a5b 100644
+--- a/media/mediaserver/Android.mk
++++ b/media/mediaserver/Android.mk
+@@ -26,7 +26,8 @@ LOCAL_SHARED_LIBRARIES := \
+ 	libutils \
+ 	liblog \
+ 	libbinder \
+-	libsoundtriggerservice
++	libsoundtriggerservice \
++	libmeizucamera
+ 
+ LOCAL_STATIC_LIBRARIES := \
+ 	libregistermsext
+diff --git a/media/mediaserver/main_mediaserver.cpp b/media/mediaserver/main_mediaserver.cpp
+index f44ef72..ae7b776 100644
+--- a/media/mediaserver/main_mediaserver.cpp
++++ b/media/mediaserver/main_mediaserver.cpp
+@@ -31,6 +31,7 @@
+ // from LOCAL_C_INCLUDES
+ #include "AudioFlinger.h"
+ #include "CameraService.h"
++#include "MZCameraService.h"
+ #include "MediaLogService.h"
+ #include "MediaPlayerService.h"
+ #include "MediaUtils.h"
+@@ -137,6 +138,7 @@ int main(int argc __unused, char** argv)
+         AudioFlinger::instantiate();
+         MediaPlayerService::instantiate();
+         CameraService::instantiate();
++        sm->addService(String16("meizu.camera"), new meizu::camera::MZCameraService());
+ #ifdef AUDIO_LISTEN_ENABLED
+         ALOGI("ListenService instantiated");
+         ListenService::instantiate();
+diff --git a/services/audioflinger/AudioFlinger.cpp b/services/audioflinger/AudioFlinger.cpp
+index 0c9b646..21ab7e6 100644
+--- a/services/audioflinger/AudioFlinger.cpp
++++ b/services/audioflinger/AudioFlinger.cpp
+@@ -2393,7 +2393,7 @@ sp<AudioFlinger::RecordThread> AudioFlinger::openInput_l(audio_module_handle_t m
+     // resample the input and do mono to stereo or stereo to mono conversions on 16 bit PCM inputs.
+     if (status == BAD_VALUE &&
+             config->format == halconfig.format && halconfig.format == AUDIO_FORMAT_PCM_16_BIT &&
+-        (halconfig.sample_rate <= 2 * config->sample_rate) &&
++        /*(halconfig.sample_rate >= 2 * config->sample_rate) && */
+         (audio_channel_count_from_in_mask(halconfig.channel_mask) <= FCC_2) &&
+         (audio_channel_count_from_in_mask(config->channel_mask) <= FCC_2)) {
+         // FIXME describe the change proposed by HAL (save old values so we can log them here)
+@@ -3334,6 +3334,42 @@ void AudioFlinger::dumpTee(int fd, const sp<NBAIO_Source>& source, audio_io_hand
+ }
+ #endif
+ 
++status_t AudioFlinger::getAudioData(int par, unsigned long size, char * buffer)
++{
++    status_t result = BAD_VALUE;
++    ALOGV("getAudioData: par=%d, size=%d, buffer=%p", par, size, buffer);
++    Mutex::Autolock _l(mLock);
++    if (mPrimaryHardwareDev != NULL) {
++        audio_hw_device_t *dev = mPrimaryHardwareDev->hwDevice();
++        if (dev != NULL && dev->get_audio_data != NULL) {
++            result = dev->get_audio_data(dev, par, size, buffer);
++        } else {
++            ALOGE("getAudioData: dev or get_audio_data is NULL");
++        }
++    } else {
++        ALOGE("getAudioData: mPrimaryHardwareDev is NULL");
++    }
++    return result;
++}
++
++status_t AudioFlinger::setAudioData(int par, unsigned long size, char * buffer)
++{
++    status_t result = BAD_VALUE;
++    ALOGV("setAudioData: par=%d, size=%d, buffer=%p", par, size, buffer);
++    Mutex::Autolock _l(mLock);
++    if (mPrimaryHardwareDev != NULL) {
++        audio_hw_device_t *dev = mPrimaryHardwareDev->hwDevice();
++        if (dev != NULL && dev->set_audio_data != NULL) {
++            result = dev->set_audio_data(dev, par, size, buffer);
++        } else {
++            ALOGE("setAudioData: dev or get_audio_data is NULL");
++        }
++    } else {
++        ALOGE("setAudioData: mPrimaryHardwareDev is NULL");
++    }
++    return result;
++}
++
+ status_t AudioFlinger::onTransact(
+         uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags)
+ {
+diff --git a/services/audioflinger/AudioFlinger.h b/services/audioflinger/AudioFlinger.h
+index 60eed29..4067df8 100644
+--- a/services/audioflinger/AudioFlinger.h
++++ b/services/audioflinger/AudioFlinger.h
+@@ -295,6 +295,9 @@ public:
+     /* Get the HW synchronization source used for an audio session */
+     virtual audio_hw_sync_t getAudioHwSyncForSession(audio_session_t sessionId);
+ 
++    virtual status_t getAudioData(int par, unsigned long size, char * buffer);
++    virtual status_t setAudioData(int par, unsigned long size, char * buffer);
++
+     virtual     status_t    onTransact(
+                                 uint32_t code,
+                                 const Parcel& data,
+diff --git a/services/camera/libcameraservice/Android.mk b/services/camera/libcameraservice/Android.mk
+index b17be82..acf02eb 100644
+--- a/services/camera/libcameraservice/Android.mk
++++ b/services/camera/libcameraservice/Android.mk
+@@ -65,7 +65,8 @@ LOCAL_SHARED_LIBRARIES:= \
+     libhardware \
+     libsync \
+     libcamera_metadata \
+-    libjpeg
++    libjpeg \
++    libmeizucamera
+ 
+ LOCAL_C_INCLUDES += \
+     system/media/camera/include \
+diff --git a/services/camera/libcameraservice/MZCameraService.cpp b/services/camera/libcameraservice/MZCameraService.cpp
+new file mode 100644
+index 0000000..22ff6c3
+--- /dev/null
++++ b/services/camera/libcameraservice/MZCameraService.cpp
+@@ -0,0 +1,6 @@
++#include "MZCameraService.h"
++
++void MZCameraService::instantiate() {
++    defaultServiceManager()->addService(
++            String16("meizu.camera"), new MZCameraService());
++}
+diff --git a/services/camera/libcameraservice/MZCameraService.h b/services/camera/libcameraservice/MZCameraService.h
+new file mode 100644
+index 0000000..0c9e081
+--- /dev/null
++++ b/services/camera/libcameraservice/MZCameraService.h
+@@ -0,0 +1,40 @@
++/*
++ * Copyright (C) 2016
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef ANDROID_SERVERS_CAMERA_MZCAMERASERVICE_H
++#define ANDROID_SERVERS_CAMERA_MZCAMERASERVICE_H
++
++#include <camera/IMZCameraService.h>
++
++namespace android {
++
++namespace meizu {
++
++namespace camera {
++
++class MZCameraService :
++    public BnMZCameraService
++{
++public:
++    MZCameraService();
++    void instantiate();
++};
++
++} // namespace camera
++} // namespace meizu
++} // namespace android
++
++#endif

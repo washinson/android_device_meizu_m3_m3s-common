@@ -1,0 +1,260 @@
+diff --git a/jni/com_android_bluetooth_btservice_AdapterService.cpp b/jni/com_android_bluetooth_btservice_AdapterService.cpp
+index f2c767f..87c9edb 100644
+--- a/jni/com_android_bluetooth_btservice_AdapterService.cpp
++++ b/jni/com_android_bluetooth_btservice_AdapterService.cpp
+@@ -390,7 +390,7 @@ static void pin_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint
+     callbackEnv->SetByteArrayRegion(devname, 0, sizeof(bt_bdname_t), (jbyte*)bdname);
+ 
+     if (sJniCallbacksObj) {
+-        callbackEnv->CallVoidMethod(sJniCallbacksObj, method_pinRequestCallback, addr, devname, cod, secure);
++        callbackEnv->CallVoidMethod(sJniCallbacksObj, method_pinRequestCallback, addr, devname, cod, /*secure*/false);
+     }
+ 
+     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
+@@ -848,19 +848,19 @@ static bool ssrcleanupNative(JNIEnv *env, jobject obj, jboolean cleanup) {
+     jboolean result = JNI_FALSE;
+     if (!sBluetoothInterface) return result;
+ 
+-    sBluetoothInterface->ssrcleanup();
+-    ALOGI("%s: return from cleanup",__FUNCTION__);
+-    if (cleanup == JNI_TRUE) {
+-        ALOGI("%s: SSR Cleanup - DISABLE Timeout   ",__FUNCTION__);
+-        if (sJniCallbacksObj) {
+-            env->DeleteGlobalRef(sJniCallbacksObj);
+-            sJniCallbacksObj = NULL;
+-        }
+-        if (sJniAdapterServiceObj) {
+-            env->DeleteGlobalRef(sJniAdapterServiceObj);
+-            sJniAdapterServiceObj = NULL;
+-        }
+-    }
++//    sBluetoothInterface->ssrcleanup();
++//    ALOGI("%s: return from cleanup",__FUNCTION__);
++//    if (cleanup == JNI_TRUE) {
++//        ALOGI("%s: SSR Cleanup - DISABLE Timeout   ",__FUNCTION__);
++//        if (sJniCallbacksObj) {
++//            env->DeleteGlobalRef(sJniCallbacksObj);
++//            sJniCallbacksObj = NULL;
++//        }
++//        if (sJniAdapterServiceObj) {
++//            env->DeleteGlobalRef(sJniAdapterServiceObj);
++//            sJniAdapterServiceObj = NULL;
++//        }
++//    }
+     return JNI_TRUE;
+ }
+ 
+@@ -1153,26 +1153,27 @@ static int getSocketOptNative(JNIEnv *env, jobject obj, jint type, jint channel,
+     bt_status_t status;
+ 
+     if (!sBluetoothSocketInterface) return -1;
++    return 0;
+ 
+-    option_val = env->GetByteArrayElements(optionVal, NULL);
+-    if (option_val == NULL) {
+-        ALOGE("getSocketOptNative :jniThrowIOException ");
+-        jniThrowIOException(env, EINVAL);
+-        return -1;
+-    }
+-
+-    if ( (status = sBluetoothSocketInterface->get_sock_opt((btsock_type_t)type, channel,
+-         (btsock_option_type_t) optionName, (void *) option_val, &option_len)) !=
+-                                                           BT_STATUS_SUCCESS) {
+-        ALOGE("get_sock_opt failed: %d", status);
+-        goto Fail;
+-    }
+-    env->ReleaseByteArrayElements(optionVal, option_val, 0);
+-
+-    return option_len;
+-Fail:
+-    env->ReleaseByteArrayElements(optionVal, option_val, 0);
+-    return -1;
++//    option_val = env->GetByteArrayElements(optionVal, NULL);
++//    if (option_val == NULL) {
++//        ALOGE("getSocketOptNative :jniThrowIOException ");
++//        jniThrowIOException(env, EINVAL);
++//        return -1;
++//    }
++//
++//    if ( (status = sBluetoothSocketInterface->get_sock_opt((btsock_type_t)type, channel,
++//         (btsock_option_type_t) optionName, (void *) option_val, &option_len)) !=
++//                                                           BT_STATUS_SUCCESS) {
++//        ALOGE("get_sock_opt failed: %d", status);
++//        goto Fail;
++//    }
++//    env->ReleaseByteArrayElements(optionVal, option_val, 0);
++//
++//    return option_len;
++//Fail:
++//    env->ReleaseByteArrayElements(optionVal, option_val, 0);
++//    return -1;
+ }
+ 
+ static int setSocketOptNative(JNIEnv *env, jobject obj, jint type, jint channel, jint optionName,
+@@ -1183,26 +1184,27 @@ static int setSocketOptNative(JNIEnv *env, jobject obj, jint type, jint channel,
+     bt_status_t status;
+ 
+     if (!sBluetoothSocketInterface) return -1;
+-
+-    option_val = env->GetByteArrayElements(optionVal, NULL);
+-    if (option_val == NULL) {
+-        ALOGE("setSocketOptNative:jniThrowIOException ");
+-        jniThrowIOException(env, EINVAL);
+-        return -1;
+-    }
+-
+-    if ( (status = sBluetoothSocketInterface->set_sock_opt((btsock_type_t)type, channel,
+-         (btsock_option_type_t) optionName, (void *) option_val, optionLen)) !=
+-                                                         BT_STATUS_SUCCESS) {
+-        ALOGE("set_sock_opt failed: %d", status);
+-        goto Fail;
+-    }
+-    env->ReleaseByteArrayElements(optionVal, option_val, 0);
+-
+     return 0;
+-Fail:
+-    env->ReleaseByteArrayElements(optionVal, option_val, 0);
+-    return -1;
++
++//    option_val = env->GetByteArrayElements(optionVal, NULL);
++//    if (option_val == NULL) {
++//        ALOGE("setSocketOptNative:jniThrowIOException ");
++//        jniThrowIOException(env, EINVAL);
++//        return -1;
++//    }
++//
++//    if ( (status = sBluetoothSocketInterface->set_sock_opt((btsock_type_t)type, channel,
++//         (btsock_option_type_t) optionName, (void *) option_val, optionLen)) !=
++//                                                         BT_STATUS_SUCCESS) {
++//        ALOGE("set_sock_opt failed: %d", status);
++//        goto Fail;
++//    }
++//    env->ReleaseByteArrayElements(optionVal, option_val, 0);
++//
++//    return 0;
++//Fail:
++//    env->ReleaseByteArrayElements(optionVal, option_val, 0);
++//    return -1;
+ }
+ 
+ static jboolean getRemoteServicesNative(JNIEnv *env, jobject obj, jbyteArray address) {
+diff --git a/jni/com_android_bluetooth_btservice_QAdapterService.cpp b/jni/com_android_bluetooth_btservice_QAdapterService.cpp
+index 1dbd934..0b286fc 100644
+--- a/jni/com_android_bluetooth_btservice_QAdapterService.cpp
++++ b/jni/com_android_bluetooth_btservice_QAdapterService.cpp
+@@ -230,16 +230,16 @@ static bool initNative(JNIEnv* env, jobject obj) {
+         ALOGE("Bluetooth module is not loaded");
+         return JNI_FALSE;
+     }
+-    if (qcBluetoothInterface) {
+-        qcJniCallbacksObj = env->NewGlobalRef(env->GetObjectField(obj, qcJniCallbacksField));
+-        int ret = qcBluetoothInterface->initq(&sQBluetoothCallbacks);
+-        if (ret != BT_STATUS_SUCCESS) {
+-            ALOGE("Error while setting the callbacks \n");
+-            qcBluetoothInterface = NULL;
+-            return JNI_FALSE;
+-        }
+-        return JNI_TRUE;
+-    }
++//    if (qcBluetoothInterface) {
++//        qcJniCallbacksObj = env->NewGlobalRef(env->GetObjectField(obj, qcJniCallbacksField));
++//        int ret = qcBluetoothInterface->initq(&sQBluetoothCallbacks);
++//        if (ret != BT_STATUS_SUCCESS) {
++//            ALOGE("Error while setting the callbacks \n");
++//            qcBluetoothInterface = NULL;
++//            return JNI_FALSE;
++//        }
++//        return JNI_TRUE;
++//    }
+     return JNI_FALSE;
+ }
+ 
+diff --git a/jni/com_android_bluetooth_hfp.cpp b/jni/com_android_bluetooth_hfp.cpp
+index 899f383..5fbb28a 100644
+--- a/jni/com_android_bluetooth_hfp.cpp
++++ b/jni/com_android_bluetooth_hfp.cpp
+@@ -498,10 +498,10 @@ static void initializeFeaturesNative(JNIEnv *env, jobject object, jint feature_b
+     }
+     if (!sBluetoothHfpInterface) return ;
+     if (feature_bitmask)
+-        if ((status = sBluetoothHfpInterface->init_features(feature_bitmask))
+-            != BT_STATUS_SUCCESS){
+-            ALOGE("Failed sending feature bitmask, status: %d", status);
+-        }
++//        if ((status = sBluetoothHfpInterface->init_features(feature_bitmask))
++//            != BT_STATUS_SUCCESS){
++//            ALOGE("Failed sending feature bitmask, status: %d", status);
++//        }
+     return;
+ }
+ 
+@@ -839,22 +839,23 @@ static jboolean configureWBSNative(JNIEnv *env, jobject object, jbyteArray addre
+     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+ }
+ 
+-static jint getRemoteFeaturesNative(JNIEnv *env, jobject object, jbyteArray address) {
+-    jbyte *addr;
+-    jint ret = 0;
+-    if (!sBluetoothHfpInterface) return ret;
+-
+-    addr = env->GetByteArrayElements(address, NULL);
+-    if (!addr) {
+-        jniThrowIOException(env, EINVAL);
+-        return ret;
+-    }
+-
+-    ret = sBluetoothHfpInterface->get_remote_features((bt_bdaddr_t *) addr);
+-    ALOGI (" Remote supported Features : %d", ret);
+-    env->ReleaseByteArrayElements(address, addr, 0);
+-    return ret;
+-}
++// Remove Qualcomm-specific code
++//static jint getRemoteFeaturesNative(JNIEnv *env, jobject object, jbyteArray address) {
++//    jbyte *addr;
++//    jint ret = 0;
++//    if (!sBluetoothHfpInterface) return ret;
++//
++//    addr = env->GetByteArrayElements(address, NULL);
++//    if (!addr) {
++//        jniThrowIOException(env, EINVAL);
++//        return ret;
++//    }
++//
++//    ret = sBluetoothHfpInterface->get_remote_features((bt_bdaddr_t *) addr);
++//    ALOGI (" Remote supported Features : %d", ret);
++//    env->ReleaseByteArrayElements(address, addr, 0);
++//    return ret;
++//}
+ 
+ static JNINativeMethod sMethods[] = {
+     {"classInitNative", "()V", (void *) classInitNative},
+@@ -876,7 +877,7 @@ static JNINativeMethod sMethods[] = {
+     {"clccResponseNative", "(IIIIZLjava/lang/String;I[B)Z", (void *) clccResponseNative},
+     {"phoneStateChangeNative", "(IIILjava/lang/String;I)Z", (void *) phoneStateChangeNative},
+     {"configureWBSNative", "([BI)Z", (void *) configureWBSNative},
+-    {"getRemoteFeaturesNative", "([B)I", (void *) getRemoteFeaturesNative},
++//    {"getRemoteFeaturesNative", "([B)I", (void *) getRemoteFeaturesNative},
+ };
+ 
+ int register_com_android_bluetooth_hfp(JNIEnv* env)
+diff --git a/src/com/android/bluetooth/hfp/HeadsetStateMachine.java b/src/com/android/bluetooth/hfp/HeadsetStateMachine.java
+index b1bed0f..f5d8edb 100644
+--- a/src/com/android/bluetooth/hfp/HeadsetStateMachine.java
++++ b/src/com/android/bluetooth/hfp/HeadsetStateMachine.java
+@@ -1174,6 +1174,7 @@ final class HeadsetStateMachine extends StateMachine {
+                     }
+                     break;
+                 case HeadsetHalConstants.CONNECTION_STATE_SLC_CONNECTED:
++                    /* This is a Qualcomm-specific handling, remove it now
+                     int RemoteBrsf = getRemoteFeaturesNative(getByteAddress(device));
+                     Log.d(TAG, "Remote Brsf: " + RemoteBrsf + " for device: " + device);
+                     mHeadsetBrsf.put(device, RemoteBrsf);
+@@ -1181,7 +1182,7 @@ final class HeadsetStateMachine extends StateMachine {
+                         Log.d(TAG, "Removing device " + device +
+                                    " conn retry entry since we got SLC");
+                         mRetryConnect.remove(device);
+-                    }
++                    }*/
+                     processSlcConnected();
+                     break;
+                 case HeadsetHalConstants.CONNECTION_STATE_CONNECTED:
