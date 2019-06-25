@@ -113,5 +113,6 @@ ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0 \
     ro.mtk_agps_app=1 \
     persist.debug.xlog.enable=1 
 
-$(call inherit-product, build/target/product/full.mk)
+# Useless
+#$(call inherit-product, build/target/product/full.mk)
 
