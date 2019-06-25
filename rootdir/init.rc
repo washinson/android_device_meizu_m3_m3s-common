@@ -9,6 +9,8 @@ import /init.usb.rc
 import /init.${ro.hardware}.rc
 import /init.${ro.zygote}.rc
 import /init.trace.rc
+# Include CM's extra init file
+import /init.cm.rc
 
 on early-init
     # Set init and its forked children's oom_adj.
@@ -32,8 +34,7 @@ on early-init
 on init
     sysclktz 0
 
-loglevel 6 ####
-    write /proc/bootprof "INIT: on init start" ####
+    loglevel 3
 
     # Backward compatibility
     symlink /system/etc /etc
@@ -60,6 +61,7 @@ loglevel 6 ####
     write /sys/fs/cgroup/memory/sw/memory.move_charge_at_immigrate 1
     chown root system /sys/fs/cgroup/memory/sw/tasks
     chmod 0660 /sys/fs/cgroup/memory/sw/tasks
+    chmod 0220 /sys/fs/cgroup/memory/cgroup.event_control
 
     mkdir /system
     mkdir /data 0771 system system
@@ -254,6 +256,7 @@ on post-fs-data
     # create basic filesystem structure
     mkdir /data/misc 01771 system misc
     mkdir /data/misc/adb 02750 system shell
+    mkdir /data/misc/audit 02750 audit system
     mkdir /data/misc/bluedroid 0770 bluetooth net_bt_stack
     mkdir /data/misc/bluetooth 0770 system system
     mkdir /data/misc/keystore 0700 keystore keystore
@@ -301,8 +304,7 @@ on post-fs-data
 
     # create directory for DRM plug-ins - give drm the read/write access to
     # the following directory.
-    mkdir /data/drm 0770 drm drm ####
-    # mkdir /data/drm 0774 drm system ####
+    mkdir /data/drm 0770 drm drm
 
     # create directory for MediaDrm plug-ins - give drm the read/write access to
     # the following directory.
@@ -326,6 +328,10 @@ on post-fs-data
     # Set SELinux security contexts on upgrade or policy update.
     restorecon_recursive /data
 
+    restorecon /data/data
+    restorecon /data/user
+    restorecon /data/user/0
+    
     # If there is no fs-post-data action in the init.<device>.rc file, you
     # must uncomment this line, otherwise encrypted filesystems
     # won't work.
@@ -413,6 +419,7 @@ on boot
     chown system system /sys/class/timed_output/vibrator/enable
     chown system system /sys/class/leds/keyboard-backlight/brightness
     chown system system /sys/class/leds/lcd-backlight/brightness
+    chown system system /sys/class/leds/torch-light/brightness
     chown system system /sys/class/leds/button-backlight/brightness
     chown system system /sys/class/leds/jogball-backlight/brightness
     chown system system /sys/class/leds/red/brightness
@@ -511,9 +518,14 @@ service healthd /sbin/healthd
 service console /system/bin/sh
     class core
     console
-    #disabled
-    #user shell
+    disabled
+    user shell
+    group shell log
     seclabel u:r:shell:s0
+
+service auditd /system/bin/auditd -k
+    seclabel u:r:logd:s0
+    class main
 
 on property:ro.debuggable=1
     start console
@@ -628,13 +640,8 @@ service drm /system/bin/drmserver
 
 service media /system/bin/mediaserver
     class main
-    user root ####
-#   google default ####
-#   user media    ####
-    group audio camera inet net_bt net_bt_admin net_bw_acct drmrpc mediadrm media sdcard_r system net_bt_stack ####
-#   google default ####
-#   group audio camera inet net_bt net_bt_admin net_bw_acct drmrpc mediadrm ####
-
+    user root
+    group audio camera inet net_bt net_bt_admin net_bw_acct drmrpc mediadrm media sdcard_r system net_bt_stack
     ioprio rt 4
 
 # One shot invocation to deal with encrypted volume.
@@ -667,6 +674,11 @@ service flash_recovery /system/bin/install-recovery.sh
     class main
     seclabel u:r:install_recovery:s0
     oneshot
+    disabled
+
+# update recovery if enabled
+on property:persist.sys.recovery_update=true
+    start flash_recovery
 
 service racoon /system/bin/racoon
     class main
