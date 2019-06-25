@@ -1,6 +1,3 @@
-$(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
-# It crashes RIL
-#$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 
 # The gps config appropriate for this device
@@ -114,6 +111,4 @@ ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0 \
     persist.debug.xlog.enable=1 
 
 $(call inherit-product, build/target/product/aosp_arm64.mk)
-# Useless
-#$(call inherit-product, build/target/product/full.mk)
 
