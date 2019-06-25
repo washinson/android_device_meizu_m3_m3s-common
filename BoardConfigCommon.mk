@@ -2,6 +2,12 @@ COMMON_PATH := device/meizu/m3_m3s-common
 
 USE_CAMERA_STUB := true
 
+# Use these headers 
+TARGET_SPECIFIC_HEADER_PATH := $(COMMON_PATH)/include
+
+# Link against libxlog
+TARGET_LDPRELOAD += libxlog.so
+
 # First architecture
 TARGET_BOARD_PLATFORM := mt6750
 TARGET_ARCH := arm64
@@ -81,6 +87,9 @@ BOARD_EGL_CFG := $(COMMON_PATH)/configs/egl.cfg
 
 # CyanogenMod Hardware Hooks
 BOARD_HARDWARE_CLASS := $(COMMON_PATH)/cmhw/
+
+# init
+TARGET_PROVIDES_INIT_RC := true
 
 # TWRP (doesnt work)
 #RECOVERY_VARIANT := twrp

@@ -1,3 +1,5 @@
+$(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
+$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 
 # The gps config appropriate for this device
@@ -7,7 +9,13 @@ COMMON_PATH := device/meizu/m3_m3s-common
 
 DEVICE_PACKAGE_OVERLAYS += $(COMMON_PATH)/overlay
 
-TARGET_PROVIDES_INIT_RC := true
+# MTK's XLog needed for Engineer Mode
+PRODUCT_PACKAGES += \
+    libxlog
+
+# Bluetooth
+PRODUCT_PACKAGES += \
+    libbt-vendor
 
 # Keyboard layout
 PRODUCT_COPY_FILES += \
@@ -60,13 +68,6 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.wifi.direct.xml:system/etc/permissions/android.hardware.wifi.direct.xml \
     frameworks/native/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml 
 
-#PRODUCT_PACKAGES += \
-#    libion \
-#    libmockdrmcryptoplugin \
-#    libaudio-resampler \
-#    libtinycompress \
-#    libtinyxml
-
 # RIL
 PRODUCT_PACKAGES += \
     gsm0710muxd
@@ -90,9 +91,6 @@ PRODUCT_PACKAGES += \
     audio.usb.default \
     audio.r_submix.default
 
-#$(call inherit-product, build/target/product/full.mk)
-$(call inherit-product, build/target/product/aosp_arm64.mk)
-
 ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0 \
     ro.allow.mock.location=1 \
     ro.debuggable=1 \
@@ -114,4 +112,5 @@ ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0 \
     ro.mtk_agps_app=1 \
     persist.debug.xlog.enable=1 
 
+$(call inherit-product, build/target/product/full.mk)
 
