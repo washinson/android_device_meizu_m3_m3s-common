@@ -89,6 +89,8 @@ PRODUCT_PACKAGES += \
     audio.usb.default \
     audio.r_submix.default
 
+$(call inherit-product, build/target/product/aosp_arm64.mk)
+
 ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0 \
     ro.allow.mock.location=1 \
     ro.debuggable=1 \
@@ -109,6 +111,4 @@ ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0 \
     ro.mtk_gps_support=1 \
     ro.mtk_agps_app=1 \
     persist.debug.xlog.enable=1 
-
-$(call inherit-product, build/target/product/aosp_arm64.mk)
 
